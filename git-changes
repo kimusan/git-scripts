@@ -1,0 +1,40 @@
+#!/bin/bash
+###################################################################
+# git-changes - show formatted log for relevant directories only  #
+# version 0.1                                                     #
+# Author Kim Schulz <k.schulz@samsung.com>                        #
+###################################################################
+# simple git script that gives you changes to a range of relevant folders in the repo.
+# output is formatted nicely and with colors. 
+# relevant directories should be listed in the file .important in the root of the git repo - one
+# directory per line.
+#
+#
+GIT_WORK_TREE="$(git rev-parse --show-toplevel)"
+SAVEIFS=$IFS
+#IFS=$(echo -en "\n\b")
+DIRS="$(cat $GIT_WORK_TREE/.important)"
+for f in $DIRS; do
+	XPATH="$XPATH $GIT_WORK_TREE/$f"
+done
+
+####################################################################
+#### CONFIG - The formatting string used                        ####
+####################################################################
+PRETTY="format: %C(auto,yellow)%h%C(auto,magenta)% G? %C(auto,blue)%>(12,trunc)%ad %C(auto,green)%<(15,trunc)%aN%C(auto,reset)%s%C(auto,red)%gd %d" 
+
+####################################################################
+#### SCRIPT                                                     ####
+####################################################################
+git log "$@" --date=relative --pretty="$PRETTY" --color $XPATH 
+
+echo "------------------------------------------------------------------------------------------------------"
+echo "G = good (valid) signature" 
+echo "B = bad signature"
+echo "U = good signature with unknown validity"
+echo "N = no signature"
+echo "------------------------------------------------------------------------------------------------------"
+echo "use --name-stats or -- stats to get the changed files listed as well"
+echo "------------------------------------------------------------------------------------------------------"
+
+IFS=$SAVEIFS
